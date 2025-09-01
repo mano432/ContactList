@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قائمة جهات الاتصال</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .contact-card {
+            transition: all 0.3s ease;
+            border-right: 4px solid #3b82f6;
+        }
+
+        .contact-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+        }
+
+        .modal {
+            backdrop-filter: blur(10px);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="p-6">
+    <div class="max-w-4xl mx-auto">
+        <!-- العنوان الرئيسي -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-white mb-2">📞 قائمة جهات الاتصال</h1>
+            <p class="text-blue-100">إدارة جهات الاتصال الخاصة بك بسهولة</p>
+        </div>
+
+        <!-- لوحة التحكم -->
+        <div class="bg-white rounded-2xl shadow-2xl p-6 mb-6">
+            <div class="flex flex-col sm:flex-row gap-4 items-center justify-between mb-6">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">👥</span>
+                    <h2 class="text-2xl font-bold text-gray-800">جهات الاتصال</h2>
+                    <span id="contactCount" class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">0</span>
+                </div>
+                
+                <button onclick="openAddModal()" class="btn-primary text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2">
+                    <span class="text-lg">➕</span>
+                    إضافة جهة اتصال جديدة
+                </button>
+            </div>
+
+            <!-- شريط البحث -->
+            <div class="mb-6">
+                <div class="relative">
+                    <input type="text" id="searchInput" placeholder="🔍 البحث في جهات الاتصال..." 
+                           class="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors"
+                           oninput="searchContacts()">
+                    <span class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</span>
+                </div>
+            </div>
+
+            <!-- قائمة جهات الاتصال -->
+            <div id="contactsList" class="space-y-4">
+                <div class="text-center py-12 text-gray-500">
+                    <div class="text-6xl mb-4">📱</div>
+                    <p class="text-xl">لا توجد جهات اتصال بعد</p>
+                    <p class="text-sm">اضغط على "إضافة جهة اتصال جديدة" للبدء</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة إضافة/تعديل جهة اتصال -->
+    <div id="contactModal" class="fixed inset-0 bg-black bg-opacity-50 modal hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 fade-in">
+            <div class="text-center mb-6">
+                <h3 id="modalTitle" class="text-2xl font-bold text-gray-800">إضافة جهة اتصال جديدة</h3>
+            </div>
+            
+            <form id="contactForm" class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">الاسم الأول</label>
+                    <input type="text" id="firstName" required 
+                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors"
+                           placeholder="أدخل الاسم الأول">
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">الاسم الأخير</label>
+                    <input type="text" id="lastName" required 
+                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors"
+                           placeholder="أدخل الاسم الأخير">
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">رقم الهاتف</label>
+                    <input type="tel" id="phone" required 
+                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors"
+                           placeholder="أدخل رقم الهاتف">
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">البريد الإلكتروني</label>
+                    <input type="email" id="email" 
+                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors"
+                           placeholder="أدخل البريد الإلكتروني (اختياري)">
+                </div>
+                
+                <div class="flex gap-3 pt-4">
+                    <button type="submit" id="saveBtn" class="btn-success text-white px-6 py-3 rounded-xl font-semibold flex-1">
+                        💾 حفظ
+                    </button>
+                    <button type="button" onclick="closeModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-xl font-semibold flex-1 transition-colors">
+                        ❌ إلغاء
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- نافذة تأكيد الحذف -->
+    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 modal hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 fade-in">
+            <div class="text-center">
+                <div class="text-6xl mb-4">⚠️</div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">تأكيد الحذف</h3>
+                <p class="text-gray-600 mb-6">هل أنت متأكد من حذف جهة الاتصال هذه؟<br>لا يمكن التراجع عن هذا الإجراء.</p>
+                
+                <div class="flex gap-3">
+                    <button onclick="confirmDelete()" class="btn-danger text-white px-6 py-3 rounded-xl font-semibold flex-1">
+                        🗑️ حذف
+                    </button>
+                    <button onclick="closeDeleteModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-xl font-semibold flex-1 transition-colors">
+                        ❌ إلغاء
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let contacts = [];
+        let editingIndex = -1;
+        let deleteIndex = -1;
+
+        // تحميل البيانات من التخزين المحلي
+        function loadContacts() {
+            const saved = localStorage.getItem('contacts');
+            if (saved) {
+                contacts = JSON.parse(saved);
+                renderContacts();
+            }
+        }
+
+        // حفظ البيانات في التخزين المحلي
+        function saveContacts() {
+            localStorage.setItem('contacts', JSON.stringify(contacts));
+        }
+
+        // عرض جهات الاتصال
+        function renderContacts(filteredContacts = null) {
+            const contactsList = document.getElementById('contactsList');
+            const displayContacts = filteredContacts || contacts;
+            
+            document.getElementById('contactCount').textContent = displayContacts.length;
+
+            if (displayContacts.length === 0) {
+                contactsList.innerHTML = `
+                    <div class="text-center py-12 text-gray-500">
+                        <div class="text-6xl mb-4">📱</div>
+                        <p class="text-xl">${filteredContacts ? 'لا توجد نتائج للبحث' : 'لا توجد جهات اتصال بعد'}</p>
+                        <p class="text-sm">${filteredContacts ? 'جرب البحث بكلمات أخرى' : 'اضغط على "إضافة جهة اتصال جديدة" للبدء'}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            contactsList.innerHTML = displayContacts.map((contact, index) => `
+                <div class="contact-card bg-gray-50 rounded-xl p-6 slide-in">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                                ${contact.firstName.charAt(0)}${contact.lastName.charAt(0)}
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">${contact.firstName} ${contact.lastName}</h3>
+                                <p class="text-gray-600 flex items-center gap-2">
+                                    <span>📞</span> ${contact.phone}
+                                </p>
+                                ${contact.email ? `<p class="text-gray-600 flex items-center gap-2"><span>📧</span> ${contact.email}</p>` : ''}
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            <button onclick="editContact(${contacts.indexOf(contact)})" 
+                                    class="btn-warning text-white px-4 py-2 rounded-lg font-semibold text-sm">
+                                ✏️ تعديل
+                            </button>
+                            <button onclick="deleteContact(${contacts.indexOf(contact)})" 
+                                    class="btn-danger text-white px-4 py-2 rounded-lg font-semibold text-sm">
+                                🗑️ حذف
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // فتح نافذة الإضافة
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = 'إضافة جهة اتصال جديدة';
+            document.getElementById('saveBtn').innerHTML = '💾 حفظ';
+            document.getElementById('contactForm').reset();
+            editingIndex = -1;
+            document.getElementById('contactModal').classList.remove('hidden');
+        }
+
+        // تعديل جهة اتصال
+        function editContact(index) {
+            const contact = contacts[index];
+            document.getElementById('modalTitle').textContent = 'تعديل جهة الاتصال';
+            document.getElementById('saveBtn').innerHTML = '💾 تحديث';
+            document.getElementById('firstName').value = contact.firstName;
+            document.getElementById('lastName').value = contact.lastName;
+            document.getElementById('phone').value = contact.phone;
+            document.getElementById('email').value = contact.email || '';
+            editingIndex = index;
+            document.getElementById('contactModal').classList.remove('hidden');
+        }
+
+        // حذف جهة اتصال
+        function deleteContact(index) {
+            deleteIndex = index;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        // تأكيد الحذف
+        function confirmDelete() {
+            contacts.splice(deleteIndex, 1);
+            saveContacts();
+            renderContacts();
+            closeDeleteModal();
+            showNotification('تم حذف جهة الاتصال بنجاح! 🗑️', 'success');
+        }
+
+        // إغلاق النوافذ
+        function closeModal() {
+            document.getElementById('contactModal').classList.add('hidden');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+        }
+
+        // البحث في جهات الاتصال
+        function searchContacts() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            if (searchTerm === '') {
+                renderContacts();
+                return;
+            }
+
+            const filtered = contacts.filter(contact => 
+                contact.firstName.toLowerCase().includes(searchTerm) ||
+                contact.lastName.toLowerCase().includes(searchTerm) ||
+                contact.phone.includes(searchTerm) ||
+                (contact.email && contact.email.toLowerCase().includes(searchTerm))
+            );
+            
+            renderContacts(filtered);
+        }
+
+        // عرض الإشعارات
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-xl text-white font-semibold z-50 fade-in ${
+                type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            }`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // معالج النموذج
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const email = document.getElementById('email').value.trim();
+
+            if (!firstName || !lastName || !phone) {
+                showNotification('يرجى ملء جميع الحقول المطلوبة! ⚠️', 'error');
+                return;
+            }
+
+            const contact = { firstName, lastName, phone, email };
+
+            if (editingIndex >= 0) {
+                contacts[editingIndex] = contact;
+                showNotification('تم تحديث جهة الاتصال بنجاح! ✅', 'success');
+            } else {
+                contacts.push(contact);
+                showNotification('تم إضافة جهة الاتصال بنجاح! 🎉', 'success');
+            }
+
+            saveContacts();
+            renderContacts();
+            closeModal();
+        });
+
+        // تحميل البيانات عند بدء التشغيل
+        loadContacts();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97835ece738e1224',t:'MTc1NjcxNTA1Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
